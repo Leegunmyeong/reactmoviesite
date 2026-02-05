@@ -1,0 +1,91 @@
+import { useState, useEffect } from "react";
+
+function Hello() {
+  useEffect(() => {
+    console.log("hi :)");
+
+    return () => console.log("bye :(");
+  }, []);
+  return <h1>Hello</h1>;
+}
+
+function App() {
+  const [show, setShowing] = useState(false);
+  const onClick = () => setShowing((prev) => !prev);
+
+  return (
+    <div>
+      {show ? <Hello /> : null}
+      <button onClick={onClick}>{show ? "Hide" : "Show"}</button>
+    </div>
+  );
+}
+
+export default App;
+----------------------------------------------
+코인 트래커
+
+import { useEffect, useState } from "react";
+
+function App() {
+  const [loading, setLoading] = useState(true);
+  const [coins, setCoins] = useState([]);
+  const [amount, setAmount] = useState("");
+  const [selectedcoin, setSelectedCoin] = useState(null);
+  useEffect(() => {
+    fetch("https://api.coinpaprika.com/v1/tickers")
+      .then((response) => response.json())
+      .then((json) => {
+        setCoins(json);
+        setLoading(false);
+      });
+  }, []);
+
+  const onAmountChange = (event) => {
+    setAmount(event.target.value);
+  };
+
+  const onSelect = (event) => {
+    const selected = coins.find((coin) => coin.id === event.target.value);
+    setSelectedCoin(selected);
+  };
+
+  return (
+    <div>
+      <h1>The Coins! {loading ? "" : `(${coins.length})`}</h1>
+
+      {loading ? (
+        <strong>Loading...</strong>
+      ) : (
+        <div>
+          <input
+            value={amount}
+            onChange={onAmountChange}
+            type="number"
+            placeholder="보유 금액($)"
+          />
+
+          <select
+            onChange={onSelect}
+            value={selectedcoin ? selectedcoin.id : ""}
+          >
+            <option value={""}>코인을 선택하세요</option>
+            {coins.map((coin) => (
+              <option key={coin.id} value={coin.id}>
+                {coin.name} ({coin.symbol}) : ${coin.quotes.USD.price} USD
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      {selectedcoin && amount !== "" ? (
+        <h3>
+          ${amount} 으로 {selectedcoin.name}
+          {Math.floor(amount / selectedcoin.quotes.USD.price)}개 살 수 있습니다
+        </h3>
+      ) : null}
+    </div>
+  );
+}
+
+export default App;
